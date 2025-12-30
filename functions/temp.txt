@@ -1,0 +1,4 @@
+SELECT * FROM Trips WHERE route_id = 81;
+outputs all info about all 81 runs
+SELECT * FROM Times WHERE trip_id = 6760007851020;
+outputs all stops that a trip stops about
