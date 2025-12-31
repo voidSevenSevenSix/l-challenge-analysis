@@ -2,3 +2,18 @@ SELECT * FROM Trips WHERE route_id = 81;
 outputs all info about all 81 runs
 SELECT * FROM Times WHERE trip_id = 6760007851020;
 outputs all stops that a trip stops about
+
+
+find stop id with name that bus stops at 
+sqlite> SELECT trip_id FROM Trips WHERE route_id = 81 AND direction = 'East' LIMIT 1;
+6770007747020
+sqlite> SELECT stop_id FROM Stops WHERE stop_name LIKE '%Kimball (Brown%';
+3746
+3804
+sqlite> SELECT * FROM Times WHERE trip_id = 6770007747020 AND stop_id = 3746;
+6770007747020|00:48:53|00:48:53|3746|22|Wilson/Marine|0|13824
+sqlite> SELECT * FROM Times WHERE trip_id = 6770007747020 AND stop_id = 3804;
+sqlite>
+
+find stop id with name that train stops at
+sqlite> SELECT STOP_ID FROM StopsRef WHERE STOP_NAME LIKE '%Howard (Terminal arrival)%' AND RED = 'true';
