@@ -4,33 +4,9 @@ const db = new Database("google_transit/database.db", {
   readonly: true,
 });
 
-/*
-Note: when selecting run, make sure it runs on correct day
-Steps:
-0. Select day
-1. Select departure station
-2. Select start time
-3. Select first run after start time (trip_id)
-4. Find time when trip gets to destination station
-4a. Check if we can "transfer" to the next destination station
-5. Select first run to next destination station after trip arrives (use stop_headsign)
-6. Repeat 4 and 5
-
-Note: can do this const result = row ?? { time: "NO_RESULT" }; if row doesn't exist
-*/
-// 63rd: 30177 (to howard) 30178 (to 95th)
-// green line split: 100
-// garfield: 30100 (63rd) 30099 (harlem)
-// temporary: pace bus split: 101
-// temporary: 81 bus split: 102
-// temporary: 54B bus split: 103
-// 15761, 
-
-//let route = [30204, 30176, 30174, 30089, 30088, 30177, 100, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
 let route = [30204, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
 let initialDay = "sunday";
-let bestTime = "10:00:00";
-let bestTimeStart = "Undefined";
+let initialTime = "09:53:00";
 
 const splitTimeConstant = 4;
 
@@ -38,31 +14,10 @@ const red = '\x1b[31m';
 const green = '\x1b[32m';
 const reset = '\x1b[0m';
 
-for (let h = 6; h < 10; h++) {
-  let hp = h.toString();
-  if (h < 10) {
-    hp = "0" + h.toString();
-  }
-  for (let i = 0; i < 60; i += 5) {
-    let j = i.toString();
-    if (i < 10) {
-      j = "0" + i.toString();
-    }
-    let t = hp + ":" + j + ":00";
-    let totalTime = calcRouteAtTimeAndDay(t, initialDay);
-    let bestTimeSplit = bestTime.split(":");
-    let totalTimeSplit = totalTime.split(":");
-    if (totalTimeSplit[0] * 3600 + totalTimeSplit[1] * 60 + totalTimeSplit[2] < bestTimeSplit[0] * 3600 + bestTimeSplit[1] * 60 + bestTimeSplit[0]) {
-      bestTime = totalTime;
-      bestTimeStart = t;
-    }
-  }
-}
-
-console.log("The best time to start on", initialDay, "is", green, bestTimeStart, reset, "taking", green, bestTime, reset);
+calcRouteAtTimeAndDay(initialTime, initialDay);
 
 function calcRouteAtTimeAndDay(startTime, day) {
-  console.log("Started calcuation for", day, "at", startTime);
+  console.log("Started calcuation for", green, day, reset, "at", green, startTime, reset);
   let time = startTime;
   let at = 0;
   while (at < route.length - 1) {
@@ -70,7 +25,6 @@ function calcRouteAtTimeAndDay(startTime, day) {
     let next = route[at + 1];
     at++;
     if (next == 101) {
-      // this is effectively the pace 318 schedule, it assumes midday which is the case for the 318 in almost all routes
       at++;
       let split = time.split(":");
       split[0] = parseInt(split[0]);
@@ -93,11 +47,11 @@ function calcRouteAtTimeAndDay(startTime, day) {
         split[1] = "0" + split[1];
       }
       time = split.toString().replaceAll(",", ":");
-      //console.log("Executed pace 318 split and burnt 30 minutes of time, current time is now", time);
+      console.log("Executed pace " + green + "318" + reset + " split and burnt 30 minutes of time, current time is now", green, time, reset);
       continue;
     }
     if (canTransfer(current, next)) {
-      //console.log("Transferred from", current, "to", next);
+      console.log("Transferred from", green, getStopNameFromId(current), reset, "to", green, getStopNameFromId(next), reset);
       continue;
     }
     let departures = getNextFifteenDeparturesFromStopAfterTime(current, time);
@@ -109,12 +63,12 @@ function calcRouteAtTimeAndDay(startTime, day) {
       }
     }
     if (trip == 0) {
-      console.error("Failed to find trip. Exiting...");
+      console.error(red, "Failed to find trip. Exiting...", reset);
       return;
     }
-    //console.log("Selected trip", trip, "at", arrivalTimeOfTripAtStop(trip, current), "to go from", current, "to", next);
+    console.log("Selected", getRouteFromTripId(trip), "line trip", trip, "(" + green + getRunNumberFromTripId(trip) + reset + ") at", green, arrivalTimeOfTripAtStop(trip, current), reset, "to go from", green, getStopNameFromId(current), reset ,"to", green, getStopNameFromId(next), reset);
     time = arrivalTimeOfTripAtStop(trip, next);
-    //console.log("The trip arrived at", time);
+    console.log("The trip arrived at", time);
     // Add 6 minutes per transfer
     let split = time.split(":");
     split[0] = parseInt(split[0]);
@@ -154,7 +108,7 @@ function calcRouteAtTimeAndDay(startTime, day) {
     splitTime[2] = "0" + splitTime[2];
   }
   splitTime = splitTime.toString().replaceAll(",", ":")
-  console.log("Routing starting at", startTime, "on", day, "took", green, splitTime, reset);
+  console.log("Routing starting at", green, startTime, reset, "on", green, day, reset, "took", green, splitTime, reset);
   return splitTime;
 }
 
@@ -228,4 +182,47 @@ function getNextFifteenDeparturesFromStopAfterTime(stop, time) {
     ids.push(row["trip_id"]);
   })
   return ids;
+}
+
+function getStopNameFromId(stopId){
+    const stmt = db.prepare(`
+        SELECT stop_name FROM Stops WHERE stop_id = ${stopId};
+    `);
+
+    const row = stmt.get();
+    return row["stop_name"];
+}
+
+function getRunNumberFromTripId(tripId){
+    const stmt = db.prepare(`
+    SELECT schd_trip_id FROM Trips WHERE trip_id = ${tripId};
+    `);
+
+    const row = stmt.get();
+    return row["schd_trip_id"];
+}
+
+function getRouteFromTripId(tripId){
+    const stmt = db.prepare(`
+    SELECT route_id FROM Trips WHERE trip_id = ${tripId};
+    `);
+
+    const row = stmt.get();
+    let id = row["route_id"];
+    if(id == "G"){
+        id = "Green";
+    }
+    if(id == "P"){
+        id = "Purple";
+    }
+    if(id == "Org"){
+        id = "Orange";
+    }
+    if(id == "Brn"){
+        id = "Brown";
+    }
+    if(id == "Y"){
+        id = "Yellow";
+    }
+    return id;
 }
