@@ -27,12 +27,12 @@ Note: can do this const result = row ?? { time: "NO_RESULT" }; if row doesn't ex
 // 15761, 
 
 //let route = [30204, 30176, 30174, 30089, 30088, 30177, 100, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
-let route = [30204, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
+let route = [30204, 30176, 30175, 30026, 30027, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
 let initialDay = "sunday";
 let bestTime = "10:00:00";
 let bestTimeStart = "Undefined";
 
-const splitTimeConstant = 4;
+const splitTimeConstant = 2;
 
 const red = '\x1b[31m';
 const green = '\x1b[32m';
@@ -115,11 +115,15 @@ function calcRouteAtTimeAndDay(startTime, day) {
     //console.log("Selected trip", trip, "at", arrivalTimeOfTripAtStop(trip, current), "to go from", current, "to", next);
     time = arrivalTimeOfTripAtStop(trip, next);
     //console.log("The trip arrived at", time);
-    // Add 6 minutes per transfer
     let split = time.split(":");
     split[0] = parseInt(split[0]);
     split[1] = parseInt(split[1]);
-    split[1] += splitTimeConstant;
+    if(current == 30171){
+      split[1] += 6; // bathroom break at ohare
+    }
+    else{
+      split[1] += splitTimeConstant;
+    }
     if (split[1] > 59) {
       split[1] -= 60;
       split[0]++;
