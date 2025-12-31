@@ -17,3 +17,12 @@ sqlite>
 
 find stop id with name that train stops at
 sqlite> SELECT STOP_ID FROM StopsRef WHERE STOP_NAME LIKE '%Howard (Terminal arrival)%' AND RED = 'true';
+
+red line 63 howard 30177
+red line 63 west 3229
+Ashland green 63 west 3246
+Ashland green harlem 30056
+halsted green harlem 30183
+halsted green 63 east 15879
+cottage grove green 63 east 3442
+cottage grove green harlem 30140

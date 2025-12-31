@@ -4,9 +4,9 @@ const db = new Database("../google_transit/database.db", {
   readonly:  true, 
 });
 
-let routeId = "81";
+let routeId = "63";
 let direction = "East";
-let stopNameContains = "Kimball (Brown";
+let stopNameContains = "Halsted (Green";
 
 const stmt = db.prepare(`
     SELECT trip_id 

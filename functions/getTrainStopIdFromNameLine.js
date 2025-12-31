@@ -4,8 +4,8 @@ const db = new Database("../google_transit/database.db", {
   readonly:  true, 
 });
 
-let line = "RED";
-let stopNameContains = "Howard (Terminal arrival)";
+let line = "G";
+let stopNameContains = "Cottage Grove (Har";
 
 const stmt = db.prepare(`
     SELECT STOP_ID 
