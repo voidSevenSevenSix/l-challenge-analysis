@@ -5,8 +5,8 @@ const db = new Database("../google_transit/database.db", {
 });
 
 // Parameters
-let stop = 14102;
-let time = "10:00:00";
+let stop = 6691;
+let time = "16:00:00";
 
 const stmt = db.prepare(`
     SELECT trip_id 

@@ -4,7 +4,7 @@ const db = new Database("../google_transit/database.db", {
   readonly:  true, 
 });
 
-const stopId = 1;
+const stopId = 17038;
 
 const stmt = db.prepare(`
     SELECT stop_name FROM Stops WHERE stop_id = ${stopId};

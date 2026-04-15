@@ -27,23 +27,27 @@ Note: can do this const result = row ?? { time: "NO_RESULT" }; if row doesn't ex
 // 15761, 
 
 //let route = [30204, 30176, 30174, 30089, 30088, 30177, 100, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
-let route = [30204, 30176, 30175, 30026, 30027, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30099, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
-let initialDay = "sunday";
+//let route = [30204, 30176, 30175, 30026, 30027, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30004, 101, 30076, 30171, 30172, 30248, 14102, 3746, 30250, 30075, 30074, 30182, 15761, 14193, 30113, 30199];
+let route = [30200, 30114, 14193, 14123, 30181, 30074, 30075, 30249, 3804, 14102, 30247, 30171, 30172, 30077, 101, 30003, 30139, 16077, 3246, 30057, 30184, 15879, 3429, 30178, 30089, 30088, 30173, 30175, 30026, 30027, 30176, 30175, 30203]; // polk start, via cottage first (8:40 at 7:45 on friday)
+//let route = [30200, 30114, 14193, 14123, 30181, 30074, 30075, 30249, 3804, 14102, 30247, 30171, 30172, 30077, 101, 30003, 30057, 3412, 3442, 30140, 30218, 3222, 3229, 30178, 30089, 30088, 30173, 30175, 30026, 30027, 30176, 30175, 30203]; // polk start, via ashland first (8:45 at 8:45 on friday)
+//                                                                                                               gs begin ^                                              ^ gs end (30178 is red)
+//let route = [30204, 30176, 30175, 30026, 30027, 30176, 30174, 30089, 30088, 30177, 3229, 3246, 30056, 30183, 15879, 3442, 30140, 30080, 30081, 30182, 15761, 14193, 30113, 30199, 6691, 18336, 30093, 30077, 101, 30003, 30074, 30075, 30249, 3804, 17038, 14102, 30247, 30171, 30172, 30069];
+let initialDay = "friday";
 let bestTime = "10:00:00";
 let bestTimeStart = "Undefined";
 
-const splitTimeConstant = 2;
+const splitTimeConstant = 3;
 
 const red = '\x1b[31m';
 const green = '\x1b[32m';
 const reset = '\x1b[0m';
 
-for (let h = 6; h < 10; h++) {
+for (let h = 7; h < 8; h++) {
   let hp = h.toString();
   if (h < 10) {
     hp = "0" + h.toString();
   }
-  for (let i = 0; i < 60; i += 5) {
+  for (let i = 45; i < 50; i += 5) {
     let j = i.toString();
     if (i < 10) {
       j = "0" + i.toString();
@@ -101,6 +105,7 @@ function calcRouteAtTimeAndDay(startTime, day) {
       continue;
     }
     let departures = getNextFifteenDeparturesFromStopAfterTime(current, time);
+    // console.log("Currently at " + current);
     let trip = 0;
     for (let i = 0; i < departures.length; i++) {
       if (doesRunGoToStop(departures[i], next) && doesTripRunOnDay(day, departures[i])) {
@@ -112,7 +117,7 @@ function calcRouteAtTimeAndDay(startTime, day) {
       console.error("Failed to find trip. Exiting...");
       return;
     }
-    //console.log("Selected trip", trip, "at", arrivalTimeOfTripAtStop(trip, current), "to go from", current, "to", next);
+    console.log("Selected run #", getRunNumberFromTripId(trip).replaceAll("R", ""), "at", arrivalTimeOfTripAtStop(trip, current), "to go from", getStopNameFromId(current), "to", getStopNameFromId(next));
     time = arrivalTimeOfTripAtStop(trip, next);
     //console.log("The trip arrived at", time);
     let split = time.split(":");
@@ -186,6 +191,28 @@ function canTransfer(from, to) {
   return rows ? true : false;
 }
 
+function getRunNumberFromTripId(tripId){
+  const stmt = db.prepare(`
+    SELECT schd_trip_id 
+    FROM Trips 
+    WHERE trip_id = ${tripId}
+  `);
+
+  const run = stmt.get();
+  return run["schd_trip_id"];
+}
+
+function getStopNameFromId(stopId){
+  const stmt = db.prepare(`
+    SELECT stop_name 
+    FROM Stops 
+    WHERE stop_id = ${stopId}
+  `);
+
+  const run = stmt.get();
+  return run["stop_name"];
+}
+
 function doesRunGoToStop(trip, stop) {
   const stmt = db.prepare(`
       SELECT * 
@@ -223,7 +250,7 @@ function getNextFifteenDeparturesFromStopAfterTime(stop, time) {
       WHERE departure_time >= '${time}'
       AND stop_id = ${stop}
       ORDER BY departure_time
-      LIMIT 15;
+      LIMIT 25;
   `);
 
   const rows = stmt.all();

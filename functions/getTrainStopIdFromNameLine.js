@@ -4,7 +4,7 @@ const db = new Database("../google_transit/database.db", {
   readonly:  true, 
 });
 
-let line = "Y";
+let line = "Red";
 let stopNameContains = "Howard";
 
 const stmt = db.prepare(`
