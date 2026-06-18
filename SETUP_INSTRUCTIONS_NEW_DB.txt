@@ -1,0 +1,17 @@
+1. download gtfs data from https://www.transitchicago.com/downloads/sch_data/
+2. run these commands for the db (the bottom two are constants):
+sqlite3 newdb.csv
+SQLite version 3.51.1 2025-11-28 17:28:25
+Enter ".help" for usage hints.
+sqlite> .mode csv
+sqlite> .import calendar.txt Calendar
+sqlite> .import stops.txt Stops
+sqlite> .import stop_times.txt Times
+sqlite> .import trips.txt Trips
+sqlite> .import transfersReal.csv Transfers
+sqlite> .import stopsrefReal.csv StopsRef
+3. create indexes to speed it up
+sqlite> CREATE INDEX idx_Times_stop_id ON Times (stop_id);
+sqlite> CREATE INDEX idx_stopsref_stop_id On StopsRef (stop_id);
+sqlite> .exit
+4. set database to use in main.js
